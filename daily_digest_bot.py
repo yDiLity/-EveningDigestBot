@@ -25,19 +25,18 @@ try:
     from aiogram.enums import ChatType
     from aiogram.fsm.context import FSMContext
     from aiogram.fsm.state import State, StatesGroup
-    from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.fsm.storage.memory import MemoryStorage
     log("aiogram imported OK")
 except Exception as e:
     log(f"Import error: {e}")
-    import traceback
     traceback.print_exc()
     sys.exit(1)
 
-def log(msg):
-    import sys
-    print(f"LOG: {msg}", file=sys.stderr, flush=True)
+# Продолжаем
+log("Continuing...")
 
 # Читаем переменные
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 log(f"BOT_TOKEN found: {bool(BOT_TOKEN)}")
 
