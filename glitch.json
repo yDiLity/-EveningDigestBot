@@ -1,0 +1,8 @@
+# Glitch configuration
+package:
+  repo: 'yDiLity/-EveningDigestBot'
+  name: 'evening-digest-bot'
+  description: 'Telegram Daily Digest Bot'
+  language: python
+  queue: false
+  maxScale: 1

@@ -585,9 +585,27 @@ async def scheduled_tasks():
         await asyncio.sleep(60)
 
 
+async def keep_alive():
+    """Ping self every 5 minutes to keep Glitch project awake"""
+    import aiohttp
+    while True:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(os.getenv("KEEP_ALIVE_URL", "https://ydilite.glitch.me")) as resp:
+                    logger.info(f"Keep-alive ping: {resp.status}")
+        except Exception as e:
+            logger.info(f"Keep-alive: {e}")
+        await asyncio.sleep(300)
+
+
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
-    dp.run_polling(bot)
+    
+    # Запускаем фоновые задачи
+    asyncio.create_task(scheduled_tasks())
+    asyncio.create_task(keep_alive())
+    
+    await dp.run_polling(bot)
 
 
 if __name__ == "__main__":
