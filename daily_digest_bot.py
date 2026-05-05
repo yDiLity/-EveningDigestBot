@@ -178,7 +178,7 @@ def parse_metrics(text: str) -> dict:
             text_lower = text_lower.replace(match.group(0), "")
             break
 
-    pages_patterns = [
+pages_patterns = [
         r"прочитал[а]?\s*(\d+)\s*(страниц|стр|страницы|страница|глав|главу|главы)?",
         r"(\d+)\s*(страниц|стр|страницы)",
     ]
@@ -193,8 +193,23 @@ def parse_metrics(text: str) -> dict:
             text_lower = text_lower.replace(match.group(0), "")
             break
 
-    training_keywords = ["присел", "отжался", "жим", "подход", "тренировка", "турник", "подтянулся", "пресс"]
-    if any(kw in text_lower for kw in training_keywords):
+    # Тренировки с числами: присел 15 раз, отжался 20 раз
+    training_num_patterns = [
+        r"присел[а]?\s*(\d+)\s*(раз|поз|повторени|повторений)",
+        r"отжал[а]?[сь]?\s*(\d+)\s*(раз|поз|повторени|повторений)",
+        r"подтянул[а]?[сь]?\s*(\d+)\s*(раз|поз|повторени|повторений)",
+        r"пресс[а]?\s*(\d+)\s*(раз|поз|повторени|повторений)",
+    ]
+    for pattern in training_num_patterns:
+        match = re.search(pattern, text_lower)
+        if match:
+            value = int(match.group(1))
+            result["training"] = f"{text} ({value} раз)"
+            text_lower = text_lower.replace(match.group(0), "")
+            break
+    
+    training_keywords = ["пришел", "отжался", "жим", "подход", "тренировка", "турник", "подтянулся", "пресс", "сходил на тренировку"]
+    if any(kw in text_lower for kw in training_keywords) and not result["training"]:
         result["training"] = text
 
     meals_keywords = ["завтрак", "обед", "ужин", "съел", "поел", "покушал", "еда", "ел"]
@@ -375,6 +390,29 @@ async def cmd_skip(message: Message):
     draft.skipped = True
     
     await message.answer("✅ Понял, сегодня ты пропускаешь. Завтра жду тебя!")
+
+
+@router.message(Command("clear"))
+async def cmd_clear(message: Message):
+    user = get_user_by_telegram_id(message.from_user.id)
+    if not user:
+        await message.answer("Ты еще не настроил бота. Нажми /start")
+        return
+    
+    today = get_today()
+    draft = get_draft(user.id, today)
+    draft.steps = None
+    draft.water = None
+    draft.pages = None
+    draft.training_text = ""
+    draft.meals_text = ""
+    draft.work_text = ""
+    draft.other_text = ""
+    draft.last_action_snapshot = {}
+    draft.is_submitted = False
+    draft.skipped = False
+    
+    await message.answer("✅ Черновик полностью очищен!")
 
 
 @router.message(Command("leaderboard"))
