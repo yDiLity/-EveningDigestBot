@@ -809,9 +809,22 @@ async def keep_alive():
 
 import asyncio
 import os
+from aiohttp import web
+
+async def handle(request):
+    return web.Response(text="OK")
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
+    
+    # HTTP сервер для Render
+    app = web.Application()
+    app.router.add_get('/', handle)
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', int(os.environ.get('PORT', 8000)))
+    await site.start()
     
     # Запускаем фоновые задачи
     asyncio.create_task(scheduled_tasks())
