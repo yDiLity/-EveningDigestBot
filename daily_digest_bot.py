@@ -631,8 +631,14 @@ async def main():
     # Запускаем фоновые задачи
     asyncio.create_task(scheduled_tasks())
     
-    await dp.run_polling(bot, return_with_pending_updates=True)
+    # Простой polling
+    await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import nest_asyncio
+    nest_asyncio.apply()
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())
