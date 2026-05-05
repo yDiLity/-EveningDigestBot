@@ -1,10 +1,14 @@
 import os
 import re
 import asyncio
+import sys
 from datetime import datetime, date, timedelta
 from typing import Optional
 import logging
 from dataclasses import dataclass, field
+
+# Форсируем вывод сразу
+sys.stdout.reconfigure(line_buffering=True)
 
 from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher, Router, F
