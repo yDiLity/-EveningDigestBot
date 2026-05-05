@@ -655,13 +655,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    import nest_asyncio
-    nest_asyncio.apply()
-    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    log("Starting bot...")
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        log("Starting bot...")
         loop.run_until_complete(main())
     except Exception as e:
         log(f"ERROR: {e}")
