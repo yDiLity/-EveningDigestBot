@@ -17,12 +17,25 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def log(msg):
+    logger.info(msg)
+    print(msg)
+
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    log("ERROR: BOT_TOKEN not found!")
+    exit(1)
+    
 GROUP_CHAT_ID = int(os.getenv("GROUP_CHAT_ID", "-1001234567890"))
 ADMIN_IDS = set(int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x)
 TIMEZONE = os.getenv("TIMEZONE", "Europe/Moscow")
+
+log(f"BOT_TOKEN starts with: {BOT_TOKEN[:20]}...")
+log(f"GROUP_CHAT_ID: {GROUP_CHAT_ID}")
+log(f"ADMIN_IDS: {ADMIN_IDS}")
 
 bot = Bot(token=BOT_TOKEN)
 router = Router()
