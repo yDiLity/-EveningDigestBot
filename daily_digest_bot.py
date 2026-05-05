@@ -23,10 +23,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def log(msg):
-    logger.info(msg)
-    print(msg)
+    print(msg, flush=True)
+    import sys
+    print(msg, file=sys.stderr, flush=True)
 
-load_dotenv()
+print("Loading dotenv...", file=sys.stderr, flush=True)
 
 # Пробуем из os.environ напрямую (Render может не передавать в dotenv)
 BOT_TOKEN = os.getenv("BOT_TOKEN") or os.environ.get("BOT_TOKEN")
