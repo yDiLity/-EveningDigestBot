@@ -598,6 +598,10 @@ async def keep_alive():
         await asyncio.sleep(300)
 
 
+import asyncio
+import uvloop
+asyncio.set_event_loop_policy(uvloop())
+
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     
@@ -605,7 +609,7 @@ async def main():
     asyncio.create_task(scheduled_tasks())
     asyncio.create_task(keep_alive())
     
-    await dp.run_polling(bot)
+    await dp.run_polling(bot, return_with_pending_updates=True)
 
 
 if __name__ == "__main__":
