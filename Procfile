@@ -1,0 +1,1 @@
+web: python daily_digest_bot.py

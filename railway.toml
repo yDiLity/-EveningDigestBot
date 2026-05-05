@@ -1,0 +1,15 @@
+[environment]
+GROUP_CHAT = "-5177645602"
+TIMEZONE = "Europe/Moscow"
+
+[variable.BOT_TOKEN]
+value = "8773213233:AAH-6CYkQGXLTQsjMS7onR0FM4CwhCk9QO4"
+
+[variable.GROUP_CHAT_ID]
+value = "-5177645602"
+
+[variable.ADMIN_IDS]
+value = "123456789"
+
+[variable.TIMEZONE]
+value = "Europe/Moscow"
