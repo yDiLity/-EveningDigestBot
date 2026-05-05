@@ -24,14 +24,20 @@ def log(msg):
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN") or os.environ.get("BOT_TOKEN")
 if not BOT_TOKEN:
     log("ERROR: BOT_TOKEN not found!")
+    log(f"Env vars: {list(os.environ.keys())}")
     exit(1)
     
-GROUP_CHAT_ID = int(os.getenv("GROUP_CHAT_ID", "-1001234567890"))
-ADMIN_IDS = set(int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x)
-TIMEZONE = os.getenv("TIMEZONE", "Europe/Moscow")
+GROUP_CHAT_ID = os.getenv("GROUP_CHAT_ID") or os.environ.get("GROUP_CHAT_ID")
+if not GROUP_CHAT_ID:
+    log("ERROR: GROUP_CHAT_ID not found!")
+    exit(1)
+GROUP_CHAT_ID = int(GROUP_CHAT_ID)
+ADMIN_IDS_STR = os.getenv("ADMIN_IDS") or os.environ.get("ADMIN_IDS", "")
+ADMIN_IDS = set(int(x) for x in ADMIN_IDS_STR.split(",") if x)
+TIMEZONE = os.getenv("TIMEZONE") or os.environ.get("TIMEZONE", "Europe/Moscow")
 
 log(f"BOT_TOKEN starts with: {BOT_TOKEN[:20]}...")
 log(f"GROUP_CHAT_ID: {GROUP_CHAT_ID}")
