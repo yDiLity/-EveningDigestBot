@@ -599,15 +599,13 @@ async def keep_alive():
 
 
 import asyncio
-import uvloop
-asyncio.set_event_loop_policy(uvloop())
+import os
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
     
     # Запускаем фоновые задачи
     asyncio.create_task(scheduled_tasks())
-    asyncio.create_task(keep_alive())
     
     await dp.run_polling(bot, return_with_pending_updates=True)
 
