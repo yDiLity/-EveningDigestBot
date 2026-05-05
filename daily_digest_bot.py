@@ -214,11 +214,11 @@ def parse_metrics(text: str) -> dict:
             text_lower = text_lower.replace(match.group(0), "")
             break
     
-    training_keywords = ["пришел", "отжался", "жим", "подход", "тренировка", "турник", "подтянулся", "пресс", "сходил на тренировку"]
+    training_keywords = ["пришел", "отжался", "жим", "подход", "тренировка", "турник", "подтянулся", "пресс", "сходил на тренировку", "сыграл", "играл", "футбол", "баскетбол", "волейбол"]
     if any(kw in text_lower for kw in training_keywords) and not result["training"]:
         result["training"] = text
 
-    meals_keywords = ["завтрак", "обед", "ужин", "съел", "поел", "покушал", "еда", "ел"]
+    meals_keywords = ["завтрак", "обед", "ужин", "съел", "поел", "покушал", "еда", "ел", "пообедал", "поужинал"]
     if any(kw in text_lower for kw in meals_keywords):
         result["meals"] = text
 
