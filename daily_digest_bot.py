@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime, date, timedelta
 from typing import Optional
 import logging
-import traceback
+from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ try:
     from aiogram.enums import ChatType
     from aiogram.fsm.context import FSMContext
     from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
+    from aiogram.fsm.storage.memory import MemoryStorage
     log("aiogram imported OK")
 except Exception as e:
     log(f"Import error: {e}")
@@ -36,7 +36,6 @@ except Exception as e:
 log("Continuing...")
 
 # Читаем переменные
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
 log(f"BOT_TOKEN found: {bool(BOT_TOKEN)}")
 
