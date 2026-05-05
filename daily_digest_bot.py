@@ -21,14 +21,16 @@ log("Loading aiogram...")
 try:
     from aiogram import Bot, Dispatcher, Router
     from aiogram.filters import Command
-    from aiogram.types import Message
+    from aiogram.types import Message, CallbackQuery
     from aiogram.enums import ChatType
     from aiogram.fsm.context import FSMContext
     from aiogram.fsm.state import State, StatesGroup
     from aiogram.fsm.storage.memory import MemoryStorage
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
     log("aiogram imported OK")
 except Exception as e:
     log(f"Import error: {e}")
+    import traceback
     traceback.print_exc()
     sys.exit(1)
 
@@ -77,6 +79,8 @@ dp.include_router(router)
 class UserState(StatesGroup):
     waiting_for_name = State()
     waiting_for_time_vote = State()
+    editing_name = State()
+    editing_send_time = State()
 
 
 @dataclass
@@ -87,6 +91,7 @@ class User:
     first_name: str = ""
     display_name: str = ""
     timezone: str = "Europe/Moscow"
+    send_time: str = "21:00"
     is_active: bool = True
 
 
@@ -178,7 +183,8 @@ def parse_metrics(text: str) -> dict:
             text_lower = text_lower.replace(match.group(0), "")
             break
 
-pages_patterns = [
+
+    pages_patterns = [
         r"прочитал[а]?\s*(\d+)\s*(страниц|стр|страницы|страница|глав|главу|главы)?",
         r"(\d+)\s*(страниц|стр|страницы)",
     ]
@@ -305,12 +311,13 @@ async def process_name(message: Message, state: FSMContext):
         f"• «выпил 2 литра воды»\n"
         f"• «съел борщ на обед»\n"
         f"• «прочитал 30 страниц»\n\n"
-        f"Я запомню всё и вечером опубликую в группу. В 21:00 — 自动ная отправка.\n\n"
+        f"Я запомню всё и вечером опубликую в группу. В 21:00 — автоматическая отправка.\n\n"
         f"Также доступны команды:\n"
         f"/mydigest — посмотреть черновик\n"
         f"/sendnow — отправить сейчас\n"
         f"/undo — удалить последнее\n"
-        f"/skip — пропустить день"
+        f"/skip — пропустить день\n"
+        f"/profile — профиль и настройки"
     )
 
 
@@ -443,6 +450,111 @@ async def cmd_leaderboard(message: Message):
         lines.append(f"{medal} {name} — {steps:,}")
     
     await message.answer("\n".join(lines))
+
+
+@router.message(Command("profile"))
+async def cmd_profile(message: Message):
+    user = get_user_by_telegram_id(message.from_user.id)
+    if not user:
+        await message.answer("Ты еще не настроил бота. Нажми /start")
+        return
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✏️ Изменить имя", callback_data="edit_name")],
+        [InlineKeyboardButton(text="⏰ Изменить время отправки", callback_data="edit_send_time")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")],
+    ])
+    
+    await message.answer(
+        f"👤 Твой профиль:\n\n"
+        f"Имя: {user.display_name or user.first_name or 'Не задано'}\n"
+        f"Время отправки: {user.send_time}\n"
+        f"Часовой пояс: {user.timezone}",
+        reply_markup=keyboard
+    )
+
+
+@router.callback_query()
+async def handle_callback(callback: CallbackQuery):
+    await callback.answer()
+    
+    user = get_user_by_telegram_id(callback.from_user.id)
+    if not user:
+        await callback.message.answer("Ты еще не настроил бота. Нажми /start")
+        return
+    
+    if callback.data == "edit_name":
+        await callback.message.answer("✏️ Введи новое имя:")
+        await callback.message.answer_state(UserState.editing_name)
+    
+    elif callback.data == "edit_send_time":
+        await callback.message.answer("⏰ Во сколько отправлять отчёт? (например: 21:00)")
+        await callback.message.answer_state(UserState.editing_send_time)
+    
+    elif callback.data == "back_to_menu":
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✏️ Изменить имя", callback_data="edit_name")],
+            [InlineKeyboardButton(text="⏰ Изменить время отправки", callback_data="edit_send_time")],
+            [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")],
+        ])
+        await callback.message.edit_text(
+            f"👤 Твой профиль:\n\n"
+            f"Имя: {user.display_name or user.first_name or 'Не задано'}\n"
+            f"Время отправки: {user.send_time}\n"
+            f"Часовой пояс: {user.timezone}"
+        )
+        await callback.message.edit_reply_markup(reply_markup=keyboard)
+
+
+@router.message(UserState.editing_name)
+async def process_edit_name(message: Message, state: FSMContext):
+    user = get_user_by_telegram_id(message.from_user.id)
+    if user:
+        user.display_name = message.text.strip()
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✏️ Изменить имя", callback_data="edit_name")],
+        [InlineKeyboardButton(text="⏰ Изменить время отправки", callback_data="edit_send_time")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")],
+    ])
+    
+    await message.answer(
+        f"✅ Имя изменено на: {message.text.strip()}\n\n"
+        f"👤 Твой профиль:\n\n"
+        f"Имя: {user.display_name or user.first_name or 'Не задано'}\n"
+        f"В��емя отправки: {user.send_time}\n"
+        f"Часовой пояс: {user.timezone}",
+        reply_markup=keyboard
+    )
+    await state.clear()
+
+
+@router.message(UserState.editing_send_time)
+async def process_edit_send_time(message: Message, state: FSMContext):
+    user = get_user_by_telegram_id(message.from_user.id)
+    
+    try:
+        time_obj = datetime.strptime(message.text.strip(), "%H:%M").time()
+        user.send_time = message.text.strip()
+    except ValueError:
+        await message.answer("Не понял формат. Напишите время в формате ЧЧ:ММ (например 21:00)")
+        return
+    
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✏️ Изменить имя", callback_data="edit_name")],
+        [InlineKeyboardButton(text="⏰ Изменить время отправки", callback_data="edit_send_time")],
+        [InlineKeyboardButton(text="🔙 Назад", callback_data="back_to_menu")],
+    ])
+    
+    await message.answer(
+        f"✅ Время отправки изменено на: {message.text.strip()}\n\n"
+        f"👤 Твой профиль:\n\n"
+        f"Имя: {user.display_name or user.first_name or 'Не задано'}\n"
+        f"Время отправки: {user.send_time}\n"
+        f"Часовой пояс: {user.timezone}",
+        reply_markup=keyboard
+    )
+    await state.clear()
 
 
 @router.message(Command("post_all"))
@@ -651,10 +763,26 @@ async def handle_message(message: Message):
 async def scheduled_tasks():
     while True:
         now = datetime.now()
-        target_hour = 21
-        target_minute = 0
+        now_str = now.strftime("%H:%M")
         
-        if now.hour == target_hour and now.minute == 0:
+        for user in users_db.values():
+            if not user.is_active:
+                continue
+            
+            if user.send_time == now_str:
+                user_id = user.id
+                today = get_today()
+                draft = drafts_db.get((user_id, today))
+                if draft and draft.is_submitted and not draft.skipped:
+                    continue
+                
+                if draft and any([draft.steps, draft.water, draft.pages, draft.meals_text, draft.work_text, draft.training_text, draft.other_text]):
+                    draft.is_submitted = True
+                    draft.submitted_at = datetime.now()
+                    personal_post = format_personal_post(draft, user)
+                    await bot.send_message(GROUP_CHAT_ID, personal_post)
+        
+        if now.hour == 23 and now.minute == 0:
             await publish_all_reports()
         
         reminder_hour = 18
@@ -663,7 +791,7 @@ async def scheduled_tasks():
         if now.hour == reminder_hour and now.minute == 0:
             await send_reminders()
         
-        await asyncio.sleep(60)
+        await asyncio.sleep(30)
 
 
 async def keep_alive():
