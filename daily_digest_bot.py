@@ -1,33 +1,27 @@
+import sys
+print("Python version:", sys.version, flush=True)
+print("Starting script...", flush=True)
+
 import os
 import re
 import asyncio
-import sys
 from datetime import datetime, date, timedelta
 from typing import Optional
 import logging
-from dataclasses import dataclass, field
 
-# Форсируем вывод сразу
-sys.stdout.reconfigure(line_buffering=True)
-
-from dotenv import load_dotenv
-from aiogram import Bot, Dispatcher, Router, F
-from aiogram.filters import Command
-from aiogram.types import Message, ChatMemberUpdated
-from aiogram.enums import ChatType
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
-
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def log(msg):
-    print(msg, flush=True)
     import sys
-    print(msg, file=sys.stderr, flush=True)
+    print(f"LOG: {msg}", file=sys.stderr, flush=True)
 
-print("Loading dotenv...", file=sys.stderr, flush=True)
+# Читаем переменные
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+log(f"BOT_TOKEN found: {bool(BOT_TOKEN)}")
+
+if not BOT_TOKEN:
+    log("ERROR: No BOT_TOKEN!")
+    sys.exit(1)
 
 # Пробуем из os.environ напрямую (Render может не передавать в dotenv)
 BOT_TOKEN = os.getenv("BOT_TOKEN") or os.environ.get("BOT_TOKEN")
