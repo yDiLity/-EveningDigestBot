@@ -8,8 +8,13 @@ import asyncio
 from datetime import datetime, date, timedelta
 from typing import Optional
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
+
+def log(msg):
+    import sys
+    print(f"LOG: {msg}", file=sys.stderr, flush=True)
 
 log("Loading aiogram...")
 
