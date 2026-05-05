@@ -220,7 +220,13 @@ def parse_metrics(text: str) -> dict:
 
     meals_keywords = ["завтрак", "обед", "ужин", "съел", "поел", "покушал", "еда", "ел", "пообедал", "поужинал"]
     if any(kw in text_lower for kw in meals_keywords):
-        result["meals"] = text
+        # Убираем начало типа "на завтрак я", "я съел"
+        cleaned = text
+        for prefix in ["на завтрак я ", "на обед я ", "на ужин я ", "я "]:
+            if cleaned.lower().startswith(prefix):
+                cleaned = cleaned[len(prefix):]
+                break
+        result["meals"] = cleaned
 
     work_keywords = ["сделал", "запушил", "закончил", "отчет", "задачу", "работа", "работал", "офис"]
     if any(kw in text_lower for kw in work_keywords):
