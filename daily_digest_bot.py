@@ -9,15 +9,24 @@ from datetime import datetime, date, timedelta
 from typing import Optional
 import logging
 
-from aiogram import Bot, Dispatcher, Router
-from aiogram.filters import Command
-from aiogram.types import Message
-from aiogram.enums import ChatType
-from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
-
 logger = logging.getLogger(__name__)
+
+log("Loading aiogram...")
+
+try:
+    from aiogram import Bot, Dispatcher, Router
+    from aiogram.filters import Command
+    from aiogram.types import Message
+    from aiogram.enums import ChatType
+    from aiogram.fsm.context import FSMContext
+    from aiogram.fsm.state import State, StatesGroup
+    from aiogram.fsm.storage.memory import MemoryStorage
+    log("aiogram imported OK")
+except Exception as e:
+    log(f"Import error: {e}")
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)
 
 def log(msg):
     import sys
